@@ -28,8 +28,8 @@ class p1(webapp.webApp):
                     self.dicNum[int(row[1])] = row[0]
                     self.dic[row[0]] = "http://localhost:1234/" + row[1]
                     print " ".join(row)
-        except IOError:  # Para crear el fichero CSV la primera vez 
-            URLcortas = open("URLcortas.csv","w")
+        except IOError:  # Para crear el fichero CSV la primera vez
+            URLcortas = open("URLcortas.csv", "w")
             URLcortas.close()
 
     def parse(self, request):
@@ -103,7 +103,7 @@ class p1(webapp.webApp):
                     # LLamada a CSV para escribir
                     with open("URLcortas.csv", "a") as csvfile:
                         elementoCSV = csv.writer(csvfile, delimiter=" ")
-                        elementoCSV.writerow([url, numSec])           
+                        elementoCSV.writerow([url, numSec])
                     URLcorta = "http://localhost:1234/" + str(numSec)
                     self.dic[url] = URLcorta
                     codigoHTTP = "200 OK"
