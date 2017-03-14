@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: iso-8859-15 -*-
 
 """
@@ -7,7 +7,7 @@ Rosa Cristina Ruiz Rivas
 """
 
 import webapp
-import urlparse
+import urllib.parse
 import csv
 
 
@@ -16,56 +16,55 @@ class p1(webapp.webApp):
     dicURLreal = {}
     # La clave es el numero asignado y el valor es la url completa
     dicNum = {}
-    # La clave es la url completa y el valor la url corta. Para el GET
+    # La clave es la url completa y el valor la url corta. Para el GET /
     dic = {}
 
     def leerCSV(self):
         try:
             with open("URLcortas.csv", "r") as csvfile:
-                lurlCortas_csv = csv.reader(csvfile, delimiter=" ")
-                for row in lurlCortas_csv:  # Puntaje = numero de URLcorta
-                    self.dicURLreal[row[0]] = int(row[1])
-                    self.dicNum[int(row[1])] = row[0]
-                    self.dic[row[0]] = "http://localhost:1234/" + row[1]
-                    print " ".join(row)
+                lurlCortas_csv = csv.reader(csvfile, delimiter=",")
+                for row in lurlCortas_csv:
+                    self.dicURLreal[row[1]] = int(row[0])
+                    self.dicNum[int(row[0])] = row[1]
+                    self.dic[row[1]] = "http://localhost:1234/" + row[0]
+                    print(",".join(row))
         except IOError:  # Para crear el fichero CSV la primera vez
             URLcortas = open("URLcortas.csv", "w")
             URLcortas.close()
 
     def parse(self, request):
-        peticion = request.split(' ')[0]
-        print "Recibido: " + peticion
+        metodo = request.split(' ')[0]
         recurso = request.split(' ')[1]  # Cojo '/recurso'
-        print "Recurso solicitado: " + recurso
-
-        if (peticion == "GET"):
+        if (metodo == "GET"):
             cuerpo = None
-
-        elif (peticion == "POST"):
+        elif (metodo == "POST"):
             cuerpo = request.split('\r\n\r\n')[1]
-            print cuerpo
+            print(cuerpo)
         else:
             recurso = None
             cuerpo = None
 
-        return (peticion, recurso, cuerpo)
+        return (metodo, recurso, cuerpo)
 
     def process(self, parsedRequest):
-        peticion = parsedRequest[0]
-        recurso = parsedRequest[1]
-        cuerpo = parsedRequest[2]
-        formulario = '<FORM action="" method="post"><p>'
-        formulario += '<LABEL for="URL">URL: </LABEL>'
-        formulario += '<INPUT type="text" name="url"><BR>'
-        formulario += '<INPUT type="submit" value="Send"></p></FORM>'
+        metodo, recurso, cuerpo = parsedRequest
+        formulario = "<form method = 'POST' action=''>URL: "
+        formulario += "<input type='text' name='url'><br>"
+        formulario += "<input type='submit' value='Enviar'></form>"
 
         if self.dicNum == {} or self.dicURLreal == {}:
             self.leerCSV()
 
-        if (peticion == "GET"):
+        if (metodo == "GET"):
             if recurso == "/":
                 codigoHTTP = "200 OK"
-                cuerpoHtml = formulario + str(cuerpo) + str(self.dic)
+                # Visualiza dic como una tabla en html
+                htmldic = '<table><tr><th>'
+                htmldic += '</th><th>'.join(self.dic.values()) + '</th></tr>'
+                htmldic += '<tr><td>' + '</td><td>'.join(self.dic.keys())
+                htmldic += '</td></tr></table>'
+                # cuerpoHtml = formulario + str(self.dic)
+                cuerpoHtml = formulario + htmldic
             else:
                 if recurso[1:].isdigit():
                     recursoNum = int(recurso[1:])
@@ -78,11 +77,11 @@ class p1(webapp.webApp):
                         cuerpoHtml = "Recurso no disponible"
                 else:
                     codigoHTTP = "404 Not Found"
-                    cuerpoHtml = "Recurso no disponible"
+                    cuerpoHtml = "Recurso no valido.No es numero"
 
-        elif (peticion == "POST"):
-            params = urlparse.parse_qs(cuerpo)
-            print params
+        elif (metodo == "POST"):
+            params = urllib.parse.parse_qs(cuerpo)
+            print(params)
             if "url" in params:
                 valorURL = params['url']
                 url = "".join(valorURL)
@@ -102,8 +101,8 @@ class p1(webapp.webApp):
                     self.dicNum[numSec] = url
                     # LLamada a CSV para escribir
                     with open("URLcortas.csv", "a") as csvfile:
-                        elementoCSV = csv.writer(csvfile, delimiter=" ")
-                        elementoCSV.writerow([url, numSec])
+                        elementoCSV = csv.writer(csvfile, delimiter=",")
+                        elementoCSV.writerow([numSec, url])
                     URLcorta = "http://localhost:1234/" + str(numSec)
                     self.dic[url] = URLcorta
                     codigoHTTP = "200 OK"
@@ -117,8 +116,7 @@ class p1(webapp.webApp):
             codigoHTTP = "400 request not available"
             cuerpoHtml = "Peticion no permitida"
 
-        return (codigoHTTP, "<HTML> <HEAD></HEAD> <BODY>" +
-                cuerpoHtml + "</BODY></HTML>")
+        return (codigoHTTP, "<html><body>" + cuerpoHtml + "</body></html>")
 
 
 if __name__ == "__main__":
