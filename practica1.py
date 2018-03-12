@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# -*- coding: iso-8859-15 -*-
+
 
 """
 Aplicacion web simple para acortar URLs
@@ -59,7 +59,7 @@ class p1(webapp.webApp):
             if recurso == "/":
                 codigoHTTP = "200 OK"
                 # Visualiza dic como una tabla en html
-                htmldic = '<table><tr><th>'
+                htmldic = '<table border><tr><th>'
                 htmldic += '</th><th>'.join(self.dic.values()) + '</th></tr>'
                 htmldic += '<tr><td>' + '</td><td>'.join(self.dic.keys())
                 htmldic += '</td></tr></table>'
